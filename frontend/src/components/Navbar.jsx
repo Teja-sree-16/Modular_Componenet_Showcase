@@ -18,7 +18,7 @@ function Navbar({ token, role, onLogout }) {
 
   return (
     <nav className="navbar">
-      <h2>Component Showcase</h2>
+      <h2>Component Library</h2>
 
       <div>
         {token && (

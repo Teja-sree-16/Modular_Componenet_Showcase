@@ -13,6 +13,10 @@ public class ComponentItem {
 
     private String name;
     private String category;
+    private String tags;
+    private String version = "1.0.0";
+    private String status = "Published";
+    private String previewImage;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -25,6 +29,18 @@ public class ComponentItem {
 
     @Column(columnDefinition = "TEXT")
     private String usageExample;
+
+    @Column(columnDefinition = "TEXT")
+    private String propsTable;
+
+    @Column(columnDefinition = "TEXT")
+    private String installationGuide;
+
+    @Column(columnDefinition = "TEXT")
+    private String accessibilityNotes;
+
+    @Column(columnDefinition = "TEXT")
+    private String bestPractices;
 
     private String createdBy;
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -41,6 +57,22 @@ public class ComponentItem {
         return category;
     }
 
+    public String getTags() {
+        return tags;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getPreviewImage() {
+        return previewImage;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -55,6 +87,22 @@ public class ComponentItem {
 
     public String getUsageExample() {
         return usageExample;
+    }
+
+    public String getPropsTable() {
+        return propsTable;
+    }
+
+    public String getInstallationGuide() {
+        return installationGuide;
+    }
+
+    public String getAccessibilityNotes() {
+        return accessibilityNotes;
+    }
+
+    public String getBestPractices() {
+        return bestPractices;
     }
 
     public String getCreatedBy() {
@@ -77,6 +125,22 @@ public class ComponentItem {
         this.category = category;
     }
 
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setPreviewImage(String previewImage) {
+        this.previewImage = previewImage;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -91,6 +155,22 @@ public class ComponentItem {
 
     public void setUsageExample(String usageExample) {
         this.usageExample = usageExample;
+    }
+
+    public void setPropsTable(String propsTable) {
+        this.propsTable = propsTable;
+    }
+
+    public void setInstallationGuide(String installationGuide) {
+        this.installationGuide = installationGuide;
+    }
+
+    public void setAccessibilityNotes(String accessibilityNotes) {
+        this.accessibilityNotes = accessibilityNotes;
+    }
+
+    public void setBestPractices(String bestPractices) {
+        this.bestPractices = bestPractices;
     }
 
     public void setCreatedBy(String createdBy) {

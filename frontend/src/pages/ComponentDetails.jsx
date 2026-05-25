@@ -1,12 +1,92 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CodeIcon, CopyIcon, EyeIcon } from "../components/Icons";
+import { CodeIcon, CopyIcon, EyeIcon, DocsIcon } from "../components/Icons";
 import api from "../api/axios";
+import { REAL_COMPONENTS_MAP } from "../components/RealComponents";
+import { CodeHighlight } from "../components/CodeHighlight";
+
+const withDocumentationDefaults = (component) => {
+  const realData = REAL_COMPONENTS_MAP[component.name] || {};
+  return {
+    ...component,
+    tags: component.tags || [component.category, component.name].join(", "),
+    version: component.version || "1.0.0",
+    status: component.status || "Published",
+    codeSnippet: realData.code || component.codeSnippet || "<Component />",
+    usageExample: realData.usage || component.usageExample || component.codeSnippet || "<Component />",
+    propsTable:
+      component.propsTable ||
+      "prop | type | required | description\nname | string | yes | Component label\nvariant | string | no | Visual style\nonClick | function | no | Event callback",
+    installationGuide:
+      component.installationGuide ||
+      "Install the internal design system package, import the component, then pass the documented props from your feature module.",
+    accessibilityNotes:
+      component.accessibilityNotes ||
+      "Verify keyboard navigation, focus visibility, color contrast, semantic labels, and screen-reader announcements.",
+    bestPractices:
+      component.bestPractices ||
+      "Use design tokens, document edge cases, avoid unnecessary variants, and test loading, empty, error, and success states.",
+  };
+};
+
+function renderPropsTable(propsText) {
+  if (!propsText) return <p className="console-muted">No parameters documented.</p>;
+  const lines = propsText.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return <p className="console-muted">No parameters documented.</p>;
+
+  const rows = lines.map((line) => line.split("|").map((cell) => cell.trim()));
+  const hasHeader = rows[0].some((cell) =>
+    ["name", "prop", "type", "required", "description"].includes(cell.toLowerCase())
+  );
+  const headerRow = hasHeader ? rows[0] : ["Prop Name", "Type", "Required", "Description"];
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+
+  return (
+    <div className="props-table-wrapper">
+      <table className="premium-props-table">
+        <thead>
+          <tr>
+            {headerRow.map((h, i) => (
+              <th key={i}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {dataRows.map((row, ri) => (
+            <tr key={ri}>
+              {row.map((cell, ci) => {
+                if (ci === 2) {
+                  const isReq = cell.toLowerCase() === "yes" || cell.toLowerCase() === "true" || cell.toLowerCase() === "required";
+                  return (
+                    <td key={ci}>
+                      <span className={`req-badge ${isReq ? "req-yes" : "req-no"}`}>
+                        {cell}
+                      </span>
+                    </td>
+                  );
+                }
+                if (ci === 1) {
+                  return (
+                    <td key={ci}>
+                      <code className="type-code">{cell}</code>
+                    </td>
+                  );
+                }
+                return <td key={ci}>{cell}</td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function ComponentDetails({ onToast }) {
   const { id } = useParams();
   const [component, setComponent] = useState(null);
   const [status, setStatus] = useState("loading");
+  const [activeTab, setActiveTab] = useState("code");
 
   useEffect(() => {
     let isMounted = true;
@@ -18,7 +98,7 @@ function ComponentDetails({ onToast }) {
         const selectedRecord = records.find((item) => String(item.id) === String(id));
 
         if (isMounted) {
-          setComponent(selectedRecord || null);
+          setComponent(selectedRecord ? withDocumentationDefaults(selectedRecord) : null);
           setStatus(selectedRecord ? "ready" : "missing");
         }
       })
@@ -42,7 +122,7 @@ function ComponentDetails({ onToast }) {
     });
   };
 
-  const useComponent = async () => {
+  const handleUseComponent = async () => {
     const usage = component.usageExample || component.codeSnippet || `<${component.name?.replace(/\s+/g, "") || "Component"} />`;
 
     await navigator.clipboard.writeText(usage);
@@ -95,23 +175,23 @@ function ComponentDetails({ onToast }) {
         </section>
 
         <section className="detail-panel detail-meta-panel">
-          <h2>Basic Details</h2>
+          <h2>Library Specifications</h2>
           <dl className="component-meta-list detail-meta-list">
             <div>
               <dt>Storage</dt>
-              <dd>PostgreSQL components table</dd>
+              <dd>Relational Database Catalog</dd>
             </div>
             <div>
               <dt>Access</dt>
-              <dd>Visible after user login</dd>
+              <dd>Authenticated Developers Only</dd>
             </div>
             <div>
-              <dt>Admin</dt>
-              <dd>Add and manage records</dd>
+              <dt>Governance</dt>
+              <dd>Admin Reviewed & Managed</dd>
             </div>
             <div>
-              <dt>Default Set</dt>
-              <dd>10 starter components</dd>
+              <dt>Core Library</dt>
+              <dd>10 production components</dd>
             </div>
           </dl>
         </section>
@@ -147,74 +227,154 @@ function ComponentDetails({ onToast }) {
         <div>
           <p className="eyebrow">{component.category || "Uncategorized"}</p>
           <h1>{component.name}</h1>
-          <p>Created by {component.createdBy || "unknown"} and stored as component ID {component.id}.</p>
+          <p>Created by {component.createdBy || "unknown"} · v{component.version} · {component.status}</p>
         </div>
         <Link className="button-link" to="/components">
           Back to Library
         </Link>
       </div>
 
-      <section className="detail-panel">
-        <h2><EyeIcon /> Live Preview</h2>
-        <div className="component-preview-box detail-preview">
-          <strong>{component.name}</strong>
-          <p>{component.description}</p>
-          <button type="button" onClick={useComponent}>
-            Use Component
-          </button>
+      <div className="preview-split-stage">
+        <div className="preview-pane-left">
+          <div className="pane-header-mini">
+            <h3><EyeIcon /> Interactive Stage</h3>
+            <div className="stage-theme-dot" />
+          </div>
+          <div className="component-preview-box preview-device-desktop preview-theme-dark">
+            {(() => {
+              const PreviewComp = REAL_COMPONENTS_MAP[component.name]?.Preview;
+              return PreviewComp ? (
+                <PreviewComp />
+              ) : (
+                <div className="no-preview-placeholder">
+                  {component.previewImage && (
+                    <img src={component.previewImage} alt="" className="fallback-preview-img" />
+                  )}
+                  <strong>{component.name}</strong>
+                  <p>{component.description}</p>
+                  <button type="button" onClick={handleUseComponent} className="primary-action-btn">
+                    Use Component
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+          
+          <div className="detail-meta-box">
+            <h4>Component Identifier</h4>
+            <code>{component.id}</code>
+            
+            <h4 style={{ marginTop: "12px" }}>Access Clearance</h4>
+            <span className="status-badge-clearance">{component.status}</span>
+          </div>
         </div>
-      </section>
 
-      <section className="detail-panel detail-meta-panel">
-        <h2>Basic Details</h2>
-        <dl className="component-meta-list detail-meta-list">
-          <div>
-            <dt>Name</dt>
-            <dd>{component.name}</dd>
+        <div className="preview-pane-right">
+          <div className="tab-switcher-row">
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "code" ? "active" : ""}`}
+              onClick={() => setActiveTab("code")}
+            >
+              <CodeIcon /> React Component Code
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "usage" ? "active" : ""}`}
+              onClick={() => setActiveTab("usage")}
+            >
+              <CodeIcon /> Usage Example
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "docs" ? "active" : ""}`}
+              onClick={() => setActiveTab("docs")}
+            >
+              <DocsIcon /> Specs & API
+            </button>
           </div>
-          <div>
-            <dt>Component ID</dt>
-            <dd>{component.id}</dd>
-          </div>
-          <div>
-            <dt>Category</dt>
-            <dd>{component.category || "Uncategorized"}</dd>
-          </div>
-          <div>
-            <dt>Created By</dt>
-            <dd>{component.createdBy || "Unknown"}</dd>
-          </div>
-          <div>
-            <dt>Created At</dt>
-            <dd>{component.createdAt ? new Date(component.createdAt).toLocaleString() : "Not recorded"}</dd>
-          </div>
-        </dl>
-      </section>
 
-      <section className="detail-panel">
-        <h2>Description</h2>
-        <p>{component.description || "No description added yet."}</p>
-      </section>
+          <div className="tab-stage-content">
+            {activeTab === "code" && (
+              <div className="code-tab-panel">
+                <div className="code-panel-header">
+                  <span>JSX Template source</span>
+                  <button type="button" className="icon-text-button" onClick={() => copyCode(component.codeSnippet)}>
+                    <CopyIcon /> Copy Template
+                  </button>
+                </div>
+                <CodeHighlight code={component.codeSnippet} />
+              </div>
+            )}
 
-      <section className="detail-panel">
-        <h2>Documentation</h2>
-        <p>{component.documentation || "No documentation added yet."}</p>
-      </section>
+            {activeTab === "usage" && (
+              <div className="code-tab-panel">
+                <div className="code-panel-header">
+                  <span>Integration example code</span>
+                  <button type="button" className="icon-text-button" onClick={() => copyCode(component.usageExample)}>
+                    <CopyIcon /> Copy Usage
+                  </button>
+                </div>
+                <CodeHighlight code={component.usageExample} />
+              </div>
+            )}
 
-      <section className="detail-panel">
-        <div className="code-header">
-          <h2><CodeIcon /> Code Snippet</h2>
-          <button type="button" className="icon-text-button" onClick={() => copyCode(component.codeSnippet)}>
-            <CopyIcon /> Copy
-          </button>
+            {activeTab === "docs" && (
+              <div className="docs-tab-panel">
+                <div className="docs-section">
+                  <h4>Functional Description</h4>
+                  <p className="docs-desc-p">{component.description || "No description provided."}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>API References & Parameters</h4>
+                  {renderPropsTable(component.propsTable)}
+                </div>
+
+                <div className="docs-meta-grid">
+                  <div>
+                    <strong>Category:</strong>
+                    <span>{component.category || "General"}</span>
+                  </div>
+                  <div>
+                    <strong>Clearance:</strong>
+                    <span>{component.status || "Published"}</span>
+                  </div>
+                  <div>
+                    <strong>Version:</strong>
+                    <span>v{component.version || "1.0.0"}</span>
+                  </div>
+                  <div>
+                    <strong>Author:</strong>
+                    <span>{component.createdBy || "Design System"}</span>
+                  </div>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Installation Instructions</h4>
+                  <div className="installation-block">
+                    <code>npm install @design-system/{component.name?.toLowerCase().replace(/\s+/g, "-")}</code>
+                    <button type="button" className="copy-icon-btn" onClick={() => copyCode(`npm install @design-system/${component.name?.toLowerCase().replace(/\s+/g, "-")}`)}>
+                      <CopyIcon />
+                    </button>
+                  </div>
+                  <p className="sub-install-notes">{component.installationGuide}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Accessibility Compliance (a11y)</h4>
+                  <p className="sub-install-notes">{component.accessibilityNotes}</p>
+                </div>
+
+                <div className="docs-section">
+                  <h4>Design Best Practices</h4>
+                  <p className="sub-install-notes">{component.bestPractices}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        <pre>{component.codeSnippet || "<Component />"}</pre>
-      </section>
-
-      <section className="detail-panel">
-        <h2>Usage Example</h2>
-        <pre>{component.usageExample || component.codeSnippet || "<Component />"}</pre>
-      </section>
+      </div>
     </div>
   );
 }

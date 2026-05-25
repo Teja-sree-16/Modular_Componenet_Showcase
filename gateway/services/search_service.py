@@ -17,18 +17,48 @@ DEMO_DESCRIPTIONS = [
     },
     {
         "componentId": 2,
+        "name": "Multi Step Signup Wizard",
+        "text": "Reusable onboarding wizard component for multi step forms validation progress review profile account setup.",
+    },
+    {
+        "componentId": 3,
         "name": "Role Aware Sidebar",
         "text": "Reusable navigation component for dashboards admin panels role based access sidebar menu.",
     },
     {
-        "componentId": 3,
+        "componentId": 4,
+        "name": "Breadcrumb Trail",
+        "text": "Navigation breadcrumb component for nested pages hierarchy detail screens parent route exploration.",
+    },
+    {
+        "componentId": 5,
         "name": "Revenue Metric Card",
         "text": "Reusable dashboard widget metric card analytics chart KPI revenue trend reporting.",
     },
     {
-        "componentId": 4,
+        "componentId": 6,
+        "name": "Activity Timeline",
+        "text": "Dashboard activity timeline component for audits approvals recent events chronological status history.",
+    },
+    {
+        "componentId": 7,
+        "name": "Data Table Toolbar",
+        "text": "Reusable dashboard table toolbar with search filters export columns bulk actions data grid controls.",
+    },
+    {
+        "componentId": 8,
         "name": "Async Toast Center",
         "text": "Feedback component for API loading success error toast notifications async operations.",
+    },
+    {
+        "componentId": 9,
+        "name": "Confirmation Modal",
+        "text": "Feedback confirmation dialog modal for delete publish approvals destructive actions accessible decisions.",
+    },
+    {
+        "componentId": 10,
+        "name": "Empty State Panel",
+        "text": "Feedback empty state component for no results no records recovery action helpful message.",
     },
 ]
 
@@ -89,6 +119,7 @@ def _semantic_matches(query):
         ranked.append(
             {
                 "componentId": item["componentId"],
+                "name": description.get("name"),
                 "score": round(_cosine(query_embedding, item["embedding"]), 4),
                 "searchText": description["text"],
             }
@@ -108,13 +139,33 @@ def _fetch_component(component_id, auth_header=None):
         return None
 
     if not response.ok:
+        return None
+
+    return response.json()
+
+
+def _fetch_components_index(auth_header=None):
+    response = requests.get(
+        f"{SPRING_BOOT_URL}/api/components",
+        headers=_headers(auth_header),
+        timeout=10,
+    )
+
+    if not response.ok:
         try:
             detail = response.json()
         except ValueError:
             detail = response.text
         raise HTTPException(status_code=response.status_code, detail=detail)
 
-    return response.json()
+    components = response.json()
+    return {
+        "by_id": {component.get("id"): component for component in components},
+        "by_name": {
+            str(component.get("name", "")).strip().lower(): component
+            for component in components
+        },
+    }
 
 
 def _log_search(query, user_email=None):
@@ -133,15 +184,18 @@ def _log_search(query, user_email=None):
 
 
 def search_components(q, auth_header=None, user_email=None):
-    matches = _semantic_matches(q)
-    _log_search(q, user_email)
+    response = requests.get(
+        f"{SPRING_BOOT_URL}/api/components/search",
+        params={"q": q},
+        headers=_headers(auth_header),
+        timeout=10,
+    )
 
-    results = []
-    for match in matches[:8]:
-        component = _fetch_component(match["componentId"], auth_header)
-        if component:
-            component["semanticScore"] = match["score"]
-            component["semanticText"] = match["searchText"]
-            results.append(component)
+    if not response.ok:
+        try:
+            detail = response.json()
+        except ValueError:
+            detail = response.text
+        raise HTTPException(status_code=response.status_code, detail=detail)
 
-    return results
+    return response.json()

@@ -134,3 +134,53 @@ WHERE NOT EXISTS (
   FROM components existing
   WHERE existing.name = seed.name
 );
+
+UPDATE components
+SET
+  tags = CASE name
+    WHEN 'Validated Email Form' THEN 'forms,validation,email,a11y'
+    WHEN 'Multi Step Signup Wizard' THEN 'forms,onboarding,wizard,validation'
+    WHEN 'Role Aware Sidebar' THEN 'navigation,rbac,admin,dashboard'
+    WHEN 'Breadcrumb Trail' THEN 'navigation,routing,detail-pages'
+    WHEN 'Revenue Metric Card' THEN 'dashboard,kpi,analytics,widgets'
+    WHEN 'Activity Timeline' THEN 'dashboard,audit,events,history'
+    WHEN 'Data Table Toolbar' THEN 'dashboard,table,filters,export'
+    WHEN 'Async Toast Center' THEN 'feedback,toast,async,status'
+    WHEN 'Confirmation Modal' THEN 'feedback,modal,destructive,a11y'
+    WHEN 'Empty State Panel' THEN 'feedback,empty-state,recovery'
+    ELSE tags
+  END,
+  version = COALESCE(version, '1.0.0'),
+  status = COALESCE(status, 'Published'),
+  preview_image = COALESCE(preview_image, 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=900&q=80'),
+  props_table = COALESCE(props_table, 'prop | type | required | description'),
+  installation_guide = COALESCE(installation_guide, 'Install from the internal design system package, import the component, then pass the documented props.'),
+  accessibility_notes = COALESCE(accessibility_notes, 'Keyboard navigation, visible focus states, semantic markup, and ARIA labels should be verified before production use.'),
+  best_practices = COALESCE(best_practices, 'Use consistent spacing, keep props explicit, document edge cases, and pair the component with design tokens.');
+
+INSERT INTO component_tags (component_id, tag)
+SELECT c.id, tag.value
+FROM components c
+CROSS JOIN LATERAL regexp_split_to_table(COALESCE(c.tags, ''), ',') AS tag(value)
+WHERE tag.value <> ''
+  AND NOT EXISTS (
+    SELECT 1 FROM component_tags existing
+    WHERE existing.component_id = c.id AND existing.tag = tag.value
+  );
+
+INSERT INTO component_versions (component_id, version, changelog, source_code)
+SELECT id, COALESCE(version, '1.0.0'), 'Initial reusable component release.', COALESCE(code_snippet, '<Component />')
+FROM components c
+WHERE NOT EXISTS (
+  SELECT 1 FROM component_versions existing
+  WHERE existing.component_id = c.id AND existing.version = COALESCE(c.version, '1.0.0')
+);
+
+INSERT INTO reviews (component_id, user_email, rating, comment)
+SELECT id, 'user@gmail.com', 5, 'Clear documentation and useful preview for implementation.'
+FROM components c
+WHERE name IN ('Validated Email Form', 'Revenue Metric Card', 'Async Toast Center')
+  AND NOT EXISTS (
+    SELECT 1 FROM reviews existing
+    WHERE existing.component_id = c.id AND existing.user_email = 'user@gmail.com'
+  );

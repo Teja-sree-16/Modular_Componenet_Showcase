@@ -116,6 +116,14 @@ public class ComponentController {
             component.setDocumentation(newData.getDocumentation());
             component.setCodeSnippet(newData.getCodeSnippet());
             component.setUsageExample(newData.getUsageExample());
+            component.setTags(newData.getTags());
+            component.setVersion(newData.getVersion());
+            component.setStatus(newData.getStatus());
+            component.setPreviewImage(newData.getPreviewImage());
+            component.setPropsTable(newData.getPropsTable());
+            component.setInstallationGuide(newData.getInstallationGuide());
+            component.setAccessibilityNotes(newData.getAccessibilityNotes());
+            component.setBestPractices(newData.getBestPractices());
             component.setCreatedBy(newData.getCreatedBy());
             return repository.save(component);
         }

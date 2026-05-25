@@ -9,10 +9,18 @@ function AddComponent() {
   const [form, setForm] = useState({
     name: "",
     category: "",
+    tags: "",
+    version: "1.0.0",
+    status: "Published",
+    previewImage: "",
     description: "",
     documentation: "",
     codeSnippet: "",
     usageExample: "",
+    propsTable: "",
+    installationGuide: "",
+    accessibilityNotes: "",
+    bestPractices: "",
     createdBy: localStorage.getItem("email"),
   });
   const [status, setStatus] = useState({ type: "idle", message: "" });
@@ -62,6 +70,36 @@ function AddComponent() {
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         />
 
+        <input
+          placeholder="Tags (comma separated)"
+          value={form.tags}
+          onChange={(e) => setForm({ ...form, tags: e.target.value })}
+        />
+
+        <div className="form-grid-two">
+          <input
+            placeholder="Version"
+            value={form.version}
+            onChange={(e) => setForm({ ...form, version: e.target.value })}
+          />
+
+          <select
+            value={form.status}
+            onChange={(e) => setForm({ ...form, status: e.target.value })}
+          >
+            <option>Draft</option>
+            <option>Review</option>
+            <option>Published</option>
+            <option>Deprecated</option>
+          </select>
+        </div>
+
+        <input
+          placeholder="Preview Image URL"
+          value={form.previewImage}
+          onChange={(e) => setForm({ ...form, previewImage: e.target.value })}
+        />
+
         <textarea
           placeholder="Description"
           value={form.description}
@@ -88,6 +126,30 @@ function AddComponent() {
           value={form.usageExample}
           required
           onChange={(e) => setForm({ ...form, usageExample: e.target.value })}
+        />
+
+        <textarea
+          placeholder="Props Table"
+          value={form.propsTable}
+          onChange={(e) => setForm({ ...form, propsTable: e.target.value })}
+        />
+
+        <textarea
+          placeholder="Installation Guide"
+          value={form.installationGuide}
+          onChange={(e) => setForm({ ...form, installationGuide: e.target.value })}
+        />
+
+        <textarea
+          placeholder="Accessibility Notes"
+          value={form.accessibilityNotes}
+          onChange={(e) => setForm({ ...form, accessibilityNotes: e.target.value })}
+        />
+
+        <textarea
+          placeholder="Best Practices"
+          value={form.bestPractices}
+          onChange={(e) => setForm({ ...form, bestPractices: e.target.value })}
         />
 
         {status.message && <p className={`notice ${status.type === "error" ? "error" : ""}`}>{status.message}</p>}

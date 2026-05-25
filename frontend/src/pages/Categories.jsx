@@ -58,9 +58,9 @@ function Categories({ onToast }) {
           <section className="role-hero">
             <div>
               <p className="eyebrow">Categories</p>
-              <h1>Component category directory</h1>
+              <h1>Explore Component Groups</h1>
             </div>
-            <span>{categoryCards.length} categories</span>
+            <span>{categoryCards.length} design groups</span>
           </section>
 
           <section className="console-panel">

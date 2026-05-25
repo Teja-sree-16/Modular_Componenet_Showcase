@@ -267,10 +267,10 @@ function Dashboard({ onToast }) {
         <div className="console-main">
           <section className="role-hero">
             <div>
-              <p className="eyebrow">{role === "ADMIN" ? "Admin Workspace" : "User Workspace"}</p>
-              <h1>{role === "ADMIN" ? "Manage component operations" : "Explore and request reusable components"}</h1>
+              <p className="eyebrow">{role === "ADMIN" ? "Governance & Operations Console" : "Design System Developer Workspace"}</p>
+              <h1>{role === "ADMIN" ? "Manage Central Component Registry" : "Explore Reusable Patterns & Request Extensions"}</h1>
             </div>
-            <span>{role === "ADMIN" ? `${pendingRequests.length} pending requests` : `${myRequests.length} personal requests`}</span>
+            <span className="role-indicator-badge">{role === "ADMIN" ? `${pendingRequests.length} proposals pending review` : `${myRequests.length} catalog submissions`}</span>
           </section>
 
           {status === "loading" ? (
@@ -287,26 +287,26 @@ function Dashboard({ onToast }) {
             <section className="stats-grid">
               <article className="stat-card">
                 <ComponentsIcon />
-                <span>Total Components</span>
-                <strong>{components.length}</strong>
+                <span>Registered Components</span>
+                <strong>{components.length} patterns</strong>
               </article>
 
               <article className="stat-card">
                 <DocsIcon />
-                <span>Categories</span>
-                <strong>{categoryNames.length}</strong>
+                <span>Component Groups</span>
+                <strong>{categoryNames.length} categories</strong>
               </article>
 
               <article className="stat-card">
                 <ChartIcon />
-                <span>Most Used</span>
+                <span>Top Core Pattern</span>
                 <strong>{mostUsedComponent.name}</strong>
               </article>
 
               <article className="stat-card">
                 <ClockIcon />
-                <span>Recent Uploads</span>
-                <strong>{latestComponents.length}</strong>
+                <span>Newly Seeded Assets</span>
+                <strong>{latestComponents.length} added</strong>
               </article>
             </section>
           )}
@@ -315,13 +315,13 @@ function Dashboard({ onToast }) {
             <>
               <form className="console-panel add-panel" onSubmit={addComponent}>
                 <div>
-                  <h2>Add New Component</h2>
-                  <p>Choose a new reusable component to open it from here.</p>
+                  <h2>Publish New Library Pattern</h2>
+                  <p>Register a production-grade React element into the centralized design catalog.</p>
                 </div>
 
                 <div className="add-grid">
                   <input
-                    placeholder="Component Name"
+                    placeholder="Component Name (e.g. Activity Table)"
                     value={form.name}
                     required
                     onChange={(event) =>
@@ -335,7 +335,7 @@ function Dashboard({ onToast }) {
                       setForm({ ...form, category: event.target.value })
                     }
                   >
-                    <option value="">Category Dropdown</option>
+                    <option value="">Assign Component Group</option>
                     {categoryNames.map((category) => (
                       <option
                         value={category}
@@ -347,7 +347,7 @@ function Dashboard({ onToast }) {
                   </select>
 
                   <input
-                    placeholder="Upload Documentation"
+                    placeholder="Integration Manual & Docs URL"
                     value={form.documentation}
                     onChange={(event) =>
                       setForm({ ...form, documentation: event.target.value })
@@ -356,18 +356,18 @@ function Dashboard({ onToast }) {
 
                   <button type="submit" disabled={saveStatus === "saving"}>
                     {saveStatus === "saving"
-                      ? "Saving..."
-                      : "Add New Component"}
+                      ? "Publishing..."
+                      : "Publish to Catalog"}
                   </button>
                 </div>
 
                 {saveStatus === "error" && (
-                  <p className="console-alert">Unable to save component.</p>
+                  <p className="console-alert">Error: Unable to save pattern. Please check backend status.</p>
                 )}
 
                 {saveStatus === "saved" && (
                   <p className="console-success">
-                    Component saved from backend console.
+                    Success: Component successfully registered in database.
                   </p>
                 )}
               </form>
@@ -375,30 +375,30 @@ function Dashboard({ onToast }) {
               <section className="console-panel">
                 <div className="section-title compact-title">
                   <div>
-                    <h2>User Component Requests</h2>
-                    <p className="console-muted">Requests submitted by users are mapped here for admin review.</p>
+                    <h2>Submitted Component Design Proposals</h2>
+                    <p className="console-muted">Requests submitted by development teams for new catalog patterns.</p>
                   </div>
-                  <span>{pendingRequests.length} pending</span>
+                  <span>{pendingRequests.length} pending approval</span>
                 </div>
 
                 {adminRequests.length === 0 && (
-                  <p className="console-muted">No user requests have been submitted yet.</p>
+                  <p className="console-muted">No custom component requests have been submitted yet.</p>
                 )}
 
                 {adminRequests.length > 0 && (
                   <div className="queue-table">
                     <div className="queue-row queue-head">
-                      <span>Name</span>
-                      <span>Category</span>
-                      <span>Requested By</span>
-                      <span>Status / Actions</span>
+                      <span>Component Name</span>
+                      <span>Design Group</span>
+                      <span>Submitter Email</span>
+                      <span>Review Control</span>
                     </div>
 
                     {adminRequests.map((item) => (
                       <div className="queue-row" key={item.id}>
                         <span>
                           <strong>{item.name}</strong>
-                          <small>{item.description || item.message || "No description provided."}</small>
+                          <small>{item.description || "No description provided."}</small>
                         </span>
                         <span>{item.category || "General"}</span>
                         <span>{item.requestedBy || "User"}</span>
@@ -407,13 +407,15 @@ function Dashboard({ onToast }) {
                             <>
                               <button
                                 type="button"
+                                className="accept-action-btn"
                                 onClick={() => reviewRequest(item, "accept")}
                               >
-                                Accept
+                                Accept & Register
                               </button>
 
                               <button
                                 type="button"
+                                className="reject-action-btn"
                                 onClick={() => reviewRequest(item, "reject")}
                               >
                                 Reject
@@ -421,7 +423,7 @@ function Dashboard({ onToast }) {
                             </>
                           ) : (
                             <span className={item.status === "ACCEPTED" ? "accepted-dot" : "rejected-dot"}>
-                              {item.status}
+                              {item.status === "ACCEPTED" ? "ACCEPTED" : "REJECTED"}
                             </span>
                           )}
                         </span>
@@ -435,13 +437,13 @@ function Dashboard({ onToast }) {
             <>
               <form className="console-panel add-panel" onSubmit={submitRequest}>
                 <div>
-                  <h2>Request a Component</h2>
-                  <p>Send a component request for admin review.</p>
+                  <h2>Propose a Component Pattern</h2>
+                  <p>Submit a request for a new design component to be registered in the central system.</p>
                 </div>
 
                 <div className="request-grid">
                   <input
-                    placeholder="Component Name"
+                    placeholder="Proposed Component Name"
                     value={requestForm.name}
                     required
                     onChange={(event) =>
@@ -453,7 +455,7 @@ function Dashboard({ onToast }) {
                   />
 
                   <input
-                    placeholder="Category"
+                    placeholder="Proposed Component Category"
                     value={requestForm.category}
                     onChange={(event) =>
                       setRequestForm({
@@ -464,7 +466,7 @@ function Dashboard({ onToast }) {
                   />
 
                   <textarea
-                    placeholder="Description"
+                    placeholder="Intended Functional Description (How it behaves, user interactions...)"
                     value={requestForm.description}
                     onChange={(event) =>
                       setRequestForm({
@@ -475,7 +477,7 @@ function Dashboard({ onToast }) {
                   />
 
                   <textarea
-                    placeholder="Documentation"
+                    placeholder="Integration Use Cases & Requirements (Required props, APIs to fetch...)"
                     value={requestForm.documentation}
                     onChange={(event) =>
                       setRequestForm({
@@ -487,36 +489,36 @@ function Dashboard({ onToast }) {
 
                   <button type="submit" disabled={requestStatus === "saving"}>
                     {requestStatus === "saving"
-                      ? "Sending..."
-                      : "Request Component"}
+                      ? "Submitting Proposal..."
+                      : "Submit Component Proposal"}
                   </button>
                 </div>
 
                 {requestStatus === "submitted" && (
-                  <p className="console-success">Request sent to admin.</p>
+                  <p className="console-success">Proposal successfully registered. The administrator has been notified.</p>
                 )}
 
                 {requestStatus === "error" && (
-                  <p className="console-alert">Unable to send request.</p>
+                  <p className="console-alert">Error: Unable to transmit proposal. Check gateway connection.</p>
                 )}
               </form>
 
               <section className="console-panel">
-                <h2>My Component Requests</h2>
+                <h2>My Component Catalog Proposals</h2>
 
                 {myRequests.length === 0 && (
                   <p className="console-muted">
-                    You have not requested any components yet.
+                    You have not proposed any components to the registry yet.
                   </p>
                 )}
 
                 {myRequests.length > 0 && (
                   <div className="queue-table">
                     <div className="queue-row queue-head">
-                      <span>Name</span>
-                      <span>Category</span>
-                      <span>Status</span>
-                      <span>Message</span>
+                      <span>Component Name</span>
+                      <span>Design Group</span>
+                      <span>Proposal Status</span>
+                      <span>System Response</span>
                     </div>
 
                     {myRequests.map((item) => (
@@ -525,12 +527,12 @@ function Dashboard({ onToast }) {
                         <span>{item.category || "General"}</span>
                         <span
                           className={
-                            item.status === "ACCEPTED" ? "accepted-dot" : ""
+                            item.status === "ACCEPTED" ? "accepted-dot" : "pending-text"
                           }
                         >
                           {item.status}
                         </span>
-                        <span>{item.message}</span>
+                        <span>{item.message || "Awaiting administrator review."}</span>
                       </div>
                     ))}
                   </div>
@@ -541,7 +543,7 @@ function Dashboard({ onToast }) {
 
           <div className="console-bottom-grid">
             <section className="console-panel chart-panel">
-              <h2>Most Used Components</h2>
+              <h2>Category Distribution</h2>
 
               <div className="bar-chart">
                 {categoryCounts.map((item) => (
@@ -554,39 +556,39 @@ function Dashboard({ onToast }) {
                         )}px`,
                       }}
                     />
-                    <small>{item.name.slice(0, 4)}</small>
+                    <small>{item.name}</small>
                   </div>
                 ))}
               </div>
             </section>
 
             <section className="console-panel activity-panel">
-              <h2>Search Activity Log</h2>
+              <h2>System Catalog Analytics</h2>
 
               <dl>
                 <div>
-                  <dt>Total Used Components</dt>
-                  <dd>{components.length}</dd>
+                  <dt>Active Catalog Count</dt>
+                  <dd>{components.length} components</dd>
                 </div>
 
                 <div>
-                  <dt>Total First Component</dt>
+                  <dt>Genesis Component</dt>
                   <dd>{components[0]?.name || "None"}</dd>
                 </div>
 
                 <div>
-                  <dt>Search Manner Relevant</dt>
-                  <dd>{documentedCount}</dd>
+                  <dt>Fully Documented Assets</dt>
+                  <dd>{documentedCount} items</dd>
                 </div>
 
                 <div>
-                  <dt>Search Activity Log</dt>
-                  <dd>{status === "ready" ? "Active" : "Pending"}</dd>
+                  <dt>Catalog Database Status</dt>
+                  <dd>{status === "ready" ? "Online" : "Reconnecting..."}</dd>
                 </div>
 
                 <div>
-                  <dt>Search Admin Component</dt>
-                  <dd>{role || "USER"}</dd>
+                  <dt>Console Access Clearance</dt>
+                  <dd className="clearance-level-badge">{role || "USER"}</dd>
                 </div>
               </dl>
             </section>
